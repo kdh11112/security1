@@ -4,12 +4,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.cos.security1.config.auth.PrincipalDetails;
 import com.cos.security1.model.User;
 import com.cos.security1.repository.UserRepository;
 
@@ -22,6 +27,32 @@ public class IndexController {
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 	
+	@GetMapping("/test/oauth/login")
+	public @ResponseBody String testLogin(
+			Authentication authentication,
+			@AuthenticationPrincipal OAuth2User oauth) { //DI(의존성 주입)
+		System.out.println("test/login ===========");
+		OAuth2User oaduth2User = (OAuth2User)authentication.getPrincipal();
+		System.out.println("authentication" +oaduth2User.getAttributes());
+		System.out.println("oauth2User : "+oauth.getAttributes());
+		
+
+		return "OAuth 세선 정보 확인하기";
+		
+	}
+	@GetMapping("/test/login")
+	public @ResponseBody String testOAuthLogin(
+			Authentication authentication
+			,@AuthenticationPrincipal PrincipalDetails userDetails) { //DI(의존성 주입)
+		System.out.println("test/login ===========");
+		PrincipalDetails principalDetails = (PrincipalDetails)authentication.getPrincipal();
+		System.out.println("authentication" +principalDetails.getUser());
+		
+		System.out.println("userDetails:"+userDetails.getUser());
+		return "세선 정보 확인하기";
+		
+	}
+	
 	//localhost:8080/
 	//localhost:8080 2개를 사용
 	@GetMapping({"","/"})
@@ -30,9 +61,11 @@ public class IndexController {
 		//뷰리졸버 설정시 : templates(prefix), .mustache(suffix) 생략가능
 		return "index"; // src/main/resources/templates/index.mustache
 	}
-	
+	//OAuth 로그인을 해도 PrincipalDetails
+	//일반 로그인을 해도 PrincipalDetails
 	@GetMapping("/user")
-	public @ResponseBody String user() {
+	public @ResponseBody String user(@AuthenticationPrincipal PrincipalDetails principalDetails) {
+		System.out.println("principalDetails : "+ principalDetails);
 		return "user";
 	}
 	
